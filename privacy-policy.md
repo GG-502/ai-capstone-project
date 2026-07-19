@@ -6,7 +6,7 @@ This Privacy Policy describes how Property Assistant ("we," "us," or "our") coll
 
 ## Information We Collect
 
-When you provide your mobile phone number as part of tenant onboarding, we collect and store your phone number along with any messages you send to us regarding maintenance requests, appointment scheduling, or callback requests.
+When you text START to (502) 308-8171 to opt in, or otherwise send us a message, we collect and store your mobile phone number along with any messages you send to us regarding maintenance requests, appointment scheduling, or callback requests.
 
 ## How We Use Your Information
 

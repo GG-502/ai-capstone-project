@@ -40,9 +40,7 @@ The Service is intended for tenant maintenance communication only and is not a s
 
 We reserve the right to modify or discontinue the Service, or these Terms, at any time. Continued use of the Service after changes are posted constitutes acceptance of the updated Terms.
 
-## Privacy
-
-Your use of the Service is also governed by our [Privacy Policy](./privacy-policy.md), which describes how your information is collected, used, and protected.
+## Privacy Policy (https://github.com/GG-502/ai-capstone-project/blob/main/privacy-policy.md), which describes how your information is collected, used, and protected.
 
 ## Contact
 

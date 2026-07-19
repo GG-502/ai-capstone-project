@@ -6,11 +6,11 @@ These Terms and Conditions ("Terms") govern your use of the SMS text messaging s
 
 ## Description of Service
 
-The Service allows tenants to text maintenance requests, appointment scheduling, and callback requests to Property Assistant. The Service will respond to categorize your request, propose an appointment date/time or arrange a callback, and send a summary confirmation once details are agreed upon. If a message indicates a possible life-safety emergency (such as a gas leak, flooding, or fire), the Service will send you instructions to contact 911 and will separately notify the property manager.
+The Service allows tenants to opt-in by texting START to (502) 308-8171, after which they may text maintenance requests, appointment scheduling, and callback requests to Property Assistant. The Service will respond to categorize your request, propose an appointment date/time or arrange a callback, and send a summary confirmation once details are agreed upon. If a message indicates a possible life-safety emergency (such as a gas leak, flooding, or fire), the Service will send you instructions to contact 911 and will separately notify the property manager.
 
 ## Opt-In / Consent
 
-By providing your mobile phone number during tenant onboarding and agreeing to receive text messages, you consent to receive SMS messages from Property Assistant related to maintenance requests, appointment confirmations, and emergency notices as described above.
+By texting START to (502) 308-8171, you consent to receive SMS messages from Property Assistant related to maintenance requests, appointment confirmations, and emergency notices as described above.
 
 ## Message Frequency
 
@@ -40,7 +40,9 @@ The Service is intended for tenant maintenance communication only and is not a s
 
 We reserve the right to modify or discontinue the Service, or these Terms, at any time. Continued use of the Service after changes are posted constitutes acceptance of the updated Terms.
 
-## Privacy Policy (https://github.com/GG-502/ai-capstone-project/blob/main/privacy-policy.md), which describes how your information is collected, used, and protected.
+## Privacy
+
+Your use of the Service is also governed by our [Privacy Policy](./privacy-policy.md), which describes how your information is collected, used, and protected.
 
 ## Contact
 

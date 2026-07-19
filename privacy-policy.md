@@ -1,8 +1,8 @@
 # Privacy Policy
 
-**Effective Date:** 7/19/2026
+**Effective Date:** July 19, 2026
 
-This Privacy Policy describes how [GG-502 / Gloria Marshall] ("we," "us," or "our") collects, uses, and protects information in connection with our SMS text messaging service for tenant maintenance requests.
+This Privacy Policy describes how Property Assistant ("we," "us," or "our") collects, uses, and protects information in connection with our SMS text messaging service for tenant maintenance requests.
 
 ## Information We Collect
 
@@ -50,4 +50,4 @@ We may update this Privacy Policy from time to time. Any changes will be posted 
 
 ## Contact Us
 
-If you have questions about this Privacy Policy, please contact [Gloria Marshall / GG-502] at [gloriaemarshall@icloud.com or 502-807-6153].
+If you have questions about this Privacy Policy, please contact Gloria Marshall at gloriaemarshall@icloud.com or 502-807-6153.

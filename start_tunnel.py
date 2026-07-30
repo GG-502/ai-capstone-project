@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
 """Start ngrok tunnel and get public URL"""
 import os
+from dotenv import load_dotenv
 from pyngrok import ngrok
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Set ngrok auth token from environment variable
 ngrok_token = os.getenv("NGROK_AUTH_TOKEN")

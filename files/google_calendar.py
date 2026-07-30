@@ -216,17 +216,19 @@ def create_event(
         event = {
             "summary": title,
             "description": notes,
-            "start": {"dateTime": start_time or datetime.now().isoformat()},
-            "end": {"dateTime": end_time or (datetime.now() + timedelta(hours=1)).isoformat()},
-            "attendees": [{"email": email} for email in (attendees or [])],
-            "reminders": {
-                "useDefault": False,
-                "overrides": [
-                    {"method": "notification", "minutes": 30},
-                    {"method": "notification", "minutes": 10}
-                ]
+            "start": {
+                "dateTime": start_time or datetime.now().isoformat(),
+                "timeZone": "America/Chicago"  # REQUIRED for Google Calendar API
+            },
+            "end": {
+                "dateTime": end_time or (datetime.now() + timedelta(hours=1)).isoformat(),
+                "timeZone": "America/Chicago"  # REQUIRED for Google Calendar API
             }
         }
+        
+        # Only add attendees if list is not empty
+        if attendees:
+            event["attendees"] = [{"email": email} for email in attendees]
         
         # Add custom properties for property assistant
         event["extendedProperties"] = {
@@ -238,12 +240,18 @@ def create_event(
             }
         }
         
+        print(f"[DEBUG] Creating calendar event: {title}")
+        print(f"[DEBUG] Start: {start_time}, End: {end_time}")
+        print(f"[DEBUG] Calendar ID: {GOOGLE_CALENDAR_ID}")
+        
         result = service.events().insert(calendarId=GOOGLE_CALENDAR_ID, body=event).execute()
         print(f"✓ Calendar event created: {title} ({result.get('id', 'unknown')})")
         return True
         
     except Exception as e:
         print(f"✗ Failed to create calendar event: {e}")
+        import traceback
+        traceback.print_exc()
         return False
 
 

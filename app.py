@@ -8,7 +8,30 @@ Usage:
     CLI: python3 app.py
     Webhook: python3 twilio_webhook.py
 """
+cd /Users/gloriamarshall/Documents/CodeYou/CodeYouAIClass2026Lab7/capstone-project
+python3 << 'EOF'
+from files.weather import get_current_conditions, is_freezing, get_weather_alert
 
+# Test 1: Get current conditions
+print("📍 CURRENT CONDITIONS:")
+conditions = get_current_conditions()
+for key, value in conditions.items():
+    print(f"  {key}: {value}")
+
+# Test 2: Check if freezing
+temp = conditions['temperature']
+print(f"\n🌡️ IS FREEZING ({temp}°F)? {is_freezing(temp)}")
+
+# Test 3: Check for alerts
+print("\n⚠️ WEATHER ALERT:")
+alert = get_weather_alert()
+if alert:
+    print(f"  Type: {alert['alert_type']}")
+    print(f"  Severity: {alert['severity']}")
+    print(f"  Message: {alert['message']}")
+else:
+    print("  No alerts")
+EOF
 import os
 import sys
 from pathlib import Path

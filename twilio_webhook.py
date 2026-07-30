@@ -70,22 +70,6 @@ def handle_sms():
         
         print(f"📤 Welcome Message: {welcome_message}")
         
-        # Send via Twilio
-        if client:
-            try:
-                message = client.messages.create(
-                    to=from_number,
-                    from_=TWILIO_FROM_NUMBER,
-                    body=welcome_message
-                )
-                print(f"✓ Welcome SMS sent (SID: {message.sid})")
-            except Exception as e:
-                print(f"✗ SMS send failed: {e}")
-        
-        # Echo back with Twilio response
-        response = MessagingResponse()
-        response.message(welcome_message)
-        
         # Initialize conversation state
         _conversation_states[phone] = {
             "phone_number": phone,
@@ -102,6 +86,10 @@ def handle_sms():
             "_route": None,
         }
         
+        # Return via Twilio MessagingResponse (only one way!)
+        response = MessagingResponse()
+        response.message(welcome_message)
+        print(f"✓ Welcome SMS sent")
         return str(response)
     
     # Get previous state if exists
@@ -135,7 +123,7 @@ def handle_sms():
         print(f"  Identity status: {result.get('identity_status')}")
         print(f"  Route: {result.get('_route')}")
         
-        # Send response via SMS
+        # Send response via Twilio MessagingResponse (only one way!)
         response_text = result.get("response", "I'm sorry, I couldn't process your message.")
         
         print(f"📤 SMS Response: {response_text[:100]}...")
@@ -143,21 +131,10 @@ def handle_sms():
         # Store updated state for next turn
         _conversation_states[phone] = result
         
-        # Send via Twilio
-        if client:
-            try:
-                message = client.messages.create(
-                    to=from_number,
-                    from_=TWILIO_FROM_NUMBER,
-                    body=response_text
-                )
-                print(f"✓ SMS sent (SID: {message.sid})")
-            except Exception as e:
-                print(f"✗ SMS send failed: {e}")
-        
-        # Echo back with Twilio response
+        # Return via Twilio MessagingResponse
         response = MessagingResponse()
         response.message(response_text)
+        print(f"✓ SMS sent")
         return str(response)
         
     except Exception as e:
@@ -178,4 +155,4 @@ if __name__ == "__main__":
     port = int(os.getenv("PORT", 5001))
     print(f"\n🚀 Starting Twilio webhook server on port {port}")
     print(f"   SMS endpoint: http://localhost:{port}/sms")
-    app.run(host="0.0.0.0", port=port, debug=True)
+    app.run(host="0.0.0.0", port=port, debug=False, use_reloader=False)

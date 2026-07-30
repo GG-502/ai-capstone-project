@@ -3,10 +3,6 @@
     "mode": "ask",
     "original_message": "door broke"
   },
-  "502-807-6153": {
-    "mode": "maintenance_option",
-    "original_message": "I have a maintenance issue"
-  },
   "859-889-4456": {
     "mode": "maintenance_option",
     "original_message": "I have a maintenance issue",

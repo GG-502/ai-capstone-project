@@ -210,8 +210,13 @@ def route_by_category(state: ConversationState) -> ConversationState:
             state["_route"] = "schedule_handler"
         return state
     
+    # Check if we're waiting for slot selection (numeric response to available slots)
+    if mode == "awaiting_slot_selection" and message.isdigit():
+        state["_route"] = "schedule_handler"
+        return state
+    
     # Check if we're waiting for schedule details (has schedule keywords)
-    if state.get("resolution_path") == "awaiting_schedule":
+    if state.get("resolution_path") in ["awaiting_schedule", "awaiting_slot_selection"]:
         schedule_keywords = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday",
                            "morning", "afternoon", "evening", "tomorrow", "next", "o'clock", "am", "pm"]
         if any(keyword in message.lower() for keyword in schedule_keywords):
@@ -367,9 +372,11 @@ def schedule_handler(state: ConversationState) -> ConversationState:
             state["resolution_path"] = "awaiting_slot_selection"
             
             # Store available slots in pending store for next turn
-            pending = PENDING_STORE.get(state["phone_number"], {})
+            phone = state.get("phone_number")
+            pending = PENDING_STORE.get(phone, {})
+            pending["mode"] = "awaiting_slot_selection"  # KEY: Set mode so routing works
             pending["available_slots"] = available_slots
-            PENDING_STORE[state["phone_number"]] = pending
+            PENDING_STORE[phone] = pending
             from files.nodes import _save_pending_store
             _save_pending_store(PENDING_STORE)
         else:
@@ -418,7 +425,7 @@ def schedule_handler(state: ConversationState) -> ConversationState:
             state["calendar_event_title"] = event_title
             state["calendar_event_type"] = "maintenance_scheduled"
             
-            time_formatted = scheduled_time.strftime("%A at %I:%M %p")
+            time_formatted = scheduled_time.strftime("%A, %B %d, %Y at %I:%M %p")
             state["response"] = (
                 f"Perfect! Your maintenance appointment is confirmed:\n\n"
                 f"📅 {time_formatted}\n"
@@ -426,6 +433,13 @@ def schedule_handler(state: ConversationState) -> ConversationState:
                 f"We'll see you then, {tenant_name}!"
             )
             state["resolution_path"] = "appointment_confirmed"
+            
+            # Clear pending store now that appointment is confirmed
+            phone = state.get("phone_number")
+            from files.nodes import PENDING_STORE as PS, _save_pending_store
+            if phone in PS:
+                del PS[phone]
+                _save_pending_store(PS)
         else:
             state["response"] = "Invalid selection. Please reply with a number from the available options."
             state["resolution_path"] = "awaiting_slot_selection"

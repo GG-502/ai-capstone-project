@@ -1,6 +1,46 @@
 {
+  "5028076153": {
+    "mode": "ask",
+    "original_message": "door broke"
+  },
+  "502-807-6153": {
+    "mode": "maintenance_option",
+    "original_message": "I have a maintenance issue"
+  },
   "859-889-4456": {
     "mode": "maintenance_option",
-    "original_message": "The door lock is broken"
+    "original_message": "I have a maintenance issue",
+    "available_slots": [
+      {
+        "start_time": "2026-08-03T09:00:00",
+        "end_time": "2026-08-03T10:00:00",
+        "day_name": "Monday",
+        "time_str": "Monday at 09:00 AM"
+      },
+      {
+        "start_time": "2026-08-03T12:00:00",
+        "end_time": "2026-08-03T13:00:00",
+        "day_name": "Monday",
+        "time_str": "Monday at 12:00 PM"
+      },
+      {
+        "start_time": "2026-08-03T15:00:00",
+        "end_time": "2026-08-03T16:00:00",
+        "day_name": "Monday",
+        "time_str": "Monday at 03:00 PM"
+      },
+      {
+        "start_time": "2026-08-03T18:00:00",
+        "end_time": "2026-08-03T19:00:00",
+        "day_name": "Monday",
+        "time_str": "Monday at 06:00 PM"
+      },
+      {
+        "start_time": "2026-08-04T09:00:00",
+        "end_time": "2026-08-04T10:00:00",
+        "day_name": "Tuesday",
+        "time_str": "Tuesday at 09:00 AM"
+      }
+    ]
   }
 }

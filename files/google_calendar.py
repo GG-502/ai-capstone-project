@@ -10,6 +10,7 @@ import json
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Optional
+from dotenv import load_dotenv
 
 try:
     from google.auth.transport.requests import Request
@@ -20,10 +21,14 @@ try:
 except ImportError:
     GOOGLE_AVAILABLE = False
 
+# Load environment variables
+load_dotenv()
+
 # Calendar configuration
 SCOPES = ["https://www.googleapis.com/auth/calendar"]
 CREDS_FILE = Path(__file__).parent.parent / "credentials.json"
 TOKEN_FILE = Path(__file__).parent.parent / "token.json"
+GOOGLE_CALENDAR_ID = os.getenv("GOOGLE_CALENDAR_ID", "primary")  # Property Assistant calendar
 
 # Scheduling constraints
 ALLOWED_DAYS = ["Monday", "Tuesday", "Thursday"]  # Not Wed/Fri
@@ -157,7 +162,7 @@ def get_all_events() -> list[dict]:
         now = datetime.utcnow().isoformat() + "Z"
         
         events_result = service.events().list(
-            calendarId="primary",
+            calendarId=GOOGLE_CALENDAR_ID,
             timeMin=now,
             maxResults=10,
             singleEvents=True,
@@ -233,7 +238,7 @@ def create_event(
             }
         }
         
-        result = service.events().insert(calendarId="primary", body=event).execute()
+        result = service.events().insert(calendarId=GOOGLE_CALENDAR_ID, body=event).execute()
         print(f"✓ Calendar event created: {title} ({result.get('id', 'unknown')})")
         return True
         
@@ -253,7 +258,7 @@ def delete_event(event_id: str) -> bool:
     
     try:
         service = build("calendar", "v3", credentials=creds)
-        service.events().delete(calendarId="primary", eventId=event_id).execute()
+        service.events().delete(calendarId=GOOGLE_CALENDAR_ID, eventId=event_id).execute()
         print(f"✓ Event deleted: {event_id}")
         return True
     except Exception as e:

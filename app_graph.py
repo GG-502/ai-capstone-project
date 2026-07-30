@@ -72,7 +72,7 @@ except Exception:
 EMERGENCY_KEYWORDS = {
     "gas": ["gas", "smell"],
     "fire": ["fire", "smoke", "burning"],
-    "flood": ["flood", "water", "leak", "burst"],
+    "flood": ["flood", "water", "burst"],
     "no heat": ["no heat", "heat off", "heating", "cold"],
 }
 
@@ -321,28 +321,124 @@ def callback_handler(state: ConversationState) -> ConversationState:
 
 def schedule_handler(state: ConversationState) -> ConversationState:
     """Handle scheduling requests from tenants."""
-    # Get tenant info for calendar event if they're providing schedule details
+    from datetime import datetime, timedelta
+    from files.nodes import PENDING_STORE
+    
     message = state.get("message", "").strip()
     tenant_info = get_tenant_by_phone(state["phone_number"]) if state["phone_number"] else None
     tenant_name = tenant_info.get("name", "Unknown") if tenant_info else "Unknown"
     
-    # Check if this is a schedule response (contains day/time info) rather than just option selection
+    # Check if this is option selection (just "1" or "2") vs actual schedule time
+    is_option_selection = message in ["1", "2"]
+    
+    # Check if message contains schedule details (day/time keywords)
     schedule_keywords = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday",
                         "morning", "afternoon", "evening", "tomorrow", "next", "o'clock", "am", "pm"]
-    has_schedule = any(keyword in message.lower() for keyword in schedule_keywords)
+    has_schedule_details = any(keyword in message.lower() for keyword in schedule_keywords)
     
-    if has_schedule and GOOGLE_CALENDAR_AVAILABLE and tenant_info:
-        # Create calendar event for the scheduled maintenance
-        from datetime import datetime, timedelta
+    # CASE 1: User just selected "1" to schedule - Generate available slots
+    if is_option_selection and GOOGLE_CALENDAR_AVAILABLE:
+        available_slots = []
+        current_search = None
         
-        # Get original issue from pending store
-        from files.nodes import PENDING_STORE
+        # Get 3-5 available appointment slots
+        for i in range(15):  # Search up to 15 days ahead
+            slot = google_calendar.get_next_available_slot(start_date=current_search, hours_to_check=168)
+            if slot:
+                available_slots.append(slot)
+                # Move search forward by 1 hour to find next slot
+                next_start = datetime.fromisoformat(slot["start_time"]) + timedelta(hours=1)
+                current_search = next_start
+                
+                if len(available_slots) >= 5:
+                    break
+            else:
+                break
+        
+        if available_slots:
+            # Format available slots for display
+            slots_text = "Here are available appointment times:\n\n"
+            for idx, slot in enumerate(available_slots, 1):
+                time_str = datetime.fromisoformat(slot["start_time"]).strftime("%A at %I:%M %p")
+                slots_text += f"{idx} - {time_str}\n"
+            
+            slots_text += "\nReply with the number of your preferred time."
+            state["response"] = slots_text
+            state["resolution_path"] = "awaiting_slot_selection"
+            
+            # Store available slots in pending store for next turn
+            pending = PENDING_STORE.get(state["phone_number"], {})
+            pending["available_slots"] = available_slots
+            PENDING_STORE[state["phone_number"]] = pending
+            from files.nodes import _save_pending_store
+            _save_pending_store(PENDING_STORE)
+        else:
+            state["response"] = "I apologize, but I couldn't find any available appointment times. Please try again later or call for assistance."
+            state["resolution_path"] = "no_slots_available"
+    
+    # CASE 2: User selected a specific time from available slots
+    elif message.isdigit() and GOOGLE_CALENDAR_AVAILABLE and tenant_info:
+        slot_idx = int(message) - 1
+        
+        # Get stored available slots
+        pending = PENDING_STORE.get(state["phone_number"], {})
+        available_slots = pending.get("available_slots", [])
+        
+        if 0 <= slot_idx < len(available_slots):
+            selected_slot = available_slots[slot_idx]
+            scheduled_time = datetime.fromisoformat(selected_slot["start_time"])
+            
+            # Get original issue from pending store
+            original_issue = pending.get("original_message", "Maintenance scheduled")
+            
+            # Create calendar event
+            event_title = f"🔧 Maintenance: {tenant_name} - {original_issue[:30]}"
+            event_notes = (
+                f"SCHEDULED MAINTENANCE\n\n"
+                f"Tenant: {tenant_name}\n"
+                f"Phone: {state.get('phone_number')}\n"
+                f"Address: {tenant_info.get('address', 'Unknown')}\n"
+                f"Issue: {original_issue}\n"
+                f"Scheduled Time: {selected_slot['time_str']}\n\n"
+                f"Status: Confirmed with tenant"
+            )
+            
+            google_calendar.create_event(
+                title=event_title,
+                notes=event_notes,
+                start_time=selected_slot["start_time"],
+                end_time=selected_slot["end_time"],
+                attendees=[],
+                tenant_id=state.get("tenant_id", ""),
+                tenant_phone=state.get("phone_number")
+            )
+            
+            # Track calendar event creation
+            state["calendar_event_created"] = True
+            state["calendar_event_title"] = event_title
+            state["calendar_event_type"] = "maintenance_scheduled"
+            
+            time_formatted = scheduled_time.strftime("%A at %I:%M %p")
+            state["response"] = (
+                f"Perfect! Your maintenance appointment is confirmed:\n\n"
+                f"📅 {time_formatted}\n"
+                f"📍 {tenant_info.get('address', 'Unknown')}\n\n"
+                f"We'll see you then, {tenant_name}!"
+            )
+            state["resolution_path"] = "appointment_confirmed"
+        else:
+            state["response"] = "Invalid selection. Please reply with a number from the available options."
+            state["resolution_path"] = "awaiting_slot_selection"
+    
+    # CASE 3: User provided natural language time preference (with keywords)
+    elif has_schedule_details and GOOGLE_CALENDAR_AVAILABLE and tenant_info:
+        # Create event as placeholder with user's preferred time
+        scheduled_time = datetime.now() + timedelta(days=1)
+        scheduled_time = scheduled_time.replace(hour=14, minute=0, second=0, microsecond=0)
+        
+        # Get original issue
         pending = PENDING_STORE.get(state["phone_number"], {})
         original_issue = pending.get("original_message", "Maintenance scheduled")
-        
-        # Create event (scheduled for tomorrow at 10am as placeholder)
-        scheduled_time = datetime.now() + timedelta(days=1)
-        scheduled_time = scheduled_time.replace(hour=10, minute=0, second=0, microsecond=0)
         
         event_title = f"🔧 Maintenance: {tenant_name} - {original_issue[:30]}"
         event_notes = (
@@ -351,8 +447,8 @@ def schedule_handler(state: ConversationState) -> ConversationState:
             f"Phone: {state.get('phone_number')}\n"
             f"Address: {tenant_info.get('address', 'Unknown')}\n"
             f"Issue: {original_issue}\n"
-            f"Requested Time: {message}\n\n"
-            f"Action: Confirm appointment time with tenant"
+            f"Preferred Time: {message}\n\n"
+            f"Status: Pending confirmation"
         )
         
         google_calendar.create_event(
@@ -365,27 +461,25 @@ def schedule_handler(state: ConversationState) -> ConversationState:
             tenant_phone=state.get("phone_number")
         )
         
-        # Track that calendar event was created
         state["calendar_event_created"] = True
         state["calendar_event_title"] = event_title
-        state["calendar_event_type"] = "schedule_confirmation"
-    
-    # If just asking for schedule, show prompt
-    if not has_schedule:
+        state["calendar_event_type"] = "schedule_pending"
+        
         state["response"] = (
-            "Great! Let's find a time that works for you.\n\n"
-            "What days and times work best? "
-            "(e.g., 'Monday afternoon', 'tomorrow morning', 'next Tuesday')"
-        )
-        state["resolution_path"] = "awaiting_schedule"
-    else:
-        state["response"] = (
-            f"Perfect! We've scheduled a maintenance appointment based on your availability.\n\n"
-            f"Preferred Time: {message}\n"
-            f"We'll confirm the exact time shortly.\n\n"
+            f"Great! Your maintenance request is noted with preferred time: {message}\n\n"
+            f"We'll contact you shortly to confirm the exact appointment time.\n\n"
             f"Thank you, {tenant_name}!"
         )
-        state["resolution_path"] = "schedule_confirmed"
+        state["resolution_path"] = "schedule_pending_confirmation"
+    
+    # CASE 4: Unknown/unexpected input
+    else:
+        state["response"] = (
+            "I didn't understand that. Please reply with:\n"
+            "- The number of your preferred appointment time, or\n"
+            "- A day and time (e.g., 'Monday afternoon', 'tomorrow morning')"
+        )
+        state["resolution_path"] = "awaiting_schedule"
     
     return state
 

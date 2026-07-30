@@ -3,8 +3,14 @@
 import os
 from pyngrok import ngrok
 
-# Set ngrok auth token
-ngrok.set_auth_token("3HEVpy946ro5UWoWimMJpLDUm5v_5f7RcX68KHCdf6nrCkNb4")
+# Set ngrok auth token from environment variable
+ngrok_token = os.getenv("NGROK_AUTH_TOKEN")
+if not ngrok_token:
+    print("❌ ERROR: NGROK_AUTH_TOKEN not set in environment")
+    print("   Please set: export NGROK_AUTH_TOKEN='your-token-here'")
+    exit(1)
+
+ngrok.set_auth_token(ngrok_token)
 
 try:
     # Start tunnel on port 5001
